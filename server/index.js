@@ -24,12 +24,13 @@ const adminRoutes = require("./routes/admin");
 const auth = require("./middleware/auth");
 
 const app = express();
+app.set("trust proxy", 1);
 
 // ==============================
 // Middleware
 // ==============================
-const allowedOrigins = process.env.CLIENT_URL 
-  ? process.env.CLIENT_URL.split(',') 
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(",")
   : [
       "http://localhost:3000",
       "http://localhost:3001",
@@ -51,7 +52,8 @@ app.use(
       // allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
         return callback(new Error(msg), false);
       }
       return callback(null, true);
@@ -65,8 +67,8 @@ const isDev = process.env.NODE_ENV === "development";
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: isDev ? 1 * 60 * 1000 : 15 * 60 * 1000,
-  max: isDev ? 100 : 100,
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -76,9 +78,10 @@ app.use(limiter);
 // Stricter rate limiting for auth routes (Production only)
 if (!isDev) {
   const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // limit each IP to 5 auth requests per windowMs
-    message: "Too many authentication attempts, please try again later.",
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
   });
   app.use("/api/auth", authLimiter);
 }
