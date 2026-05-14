@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+client/.env
+server/.env
+
+# Build Artifacts
+dist/
+client/dist/
+build/
+.vite/
+
+# Logs and Debug
+*.log
+npm-debug.log*
+output.txt
+my_folders.txt
+
+# OS Junk
+.DS_Store
+Thumbs.db
+
+# Backups
+*.backup
+*.bak
+
+
+create-test-users.js
+test-roles.js
