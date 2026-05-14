@@ -28,9 +28,9 @@ const app = express();
 // ==============================
 // Middleware
 // ==============================
-app.use(
-  cors({
-    origin: [
+const allowedOrigins = process.env.CLIENT_URL 
+  ? process.env.CLIENT_URL.split(',') 
+  : [
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -43,7 +43,19 @@ app.use(
       "http://localhost:3009",
       "http://localhost:3010",
       "http://localhost:3011",
-    ],
+    ];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   }),
 );

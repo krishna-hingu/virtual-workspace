@@ -45,9 +45,9 @@ const initSocket = async (server) => {
   // Load object states from DB on startup
   await loadObjectStates();
 
-  io = socketIo(server, {
-    cors: {
-      origin: [
+  const allowedOrigins = process.env.CLIENT_URL 
+    ? process.env.CLIENT_URL.split(',') 
+    : [
         "http://localhost:3000",
         "http://localhost:3001",
         "http://localhost:3002",
@@ -60,7 +60,11 @@ const initSocket = async (server) => {
         "http://localhost:3009",
         "http://localhost:3010",
         "http://localhost:3011",
-      ],
+      ];
+
+  io = socketIo(server, {
+    cors: {
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
     },

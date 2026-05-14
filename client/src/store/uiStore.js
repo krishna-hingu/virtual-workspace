@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { API_URL } from "../services/api";
 
 export const useUIStore = create((set) => ({
   sidebarOpen: true,
@@ -21,26 +22,31 @@ export const useUIStore = create((set) => ({
   selectedUser: null,
   _notificationQueue: [], // Queue for notifications before initialization
 
-  setInitialized: (val) => set((state) => {
-    if (val && state._notificationQueue && state._notificationQueue.length > 0) {
-      // Flush queued notifications when initialized
-      const newNotifications = [
-        ...state._notificationQueue.map(notif => ({
-          id: notif.id || Date.now(),
-          timestamp: notif.timestamp || new Date(),
-          read: false,
-          ...notif,
-        })),
-        ...state.notifications,
-      ].slice(0, 20);
-      return {
-        isInitialized: val,
-        notifications: newNotifications,
-        _notificationQueue: [],
-      };
-    }
-    return { isInitialized: val };
-  }),
+  setInitialized: (val) =>
+    set((state) => {
+      if (
+        val &&
+        state._notificationQueue &&
+        state._notificationQueue.length > 0
+      ) {
+        // Flush queued notifications when initialized
+        const newNotifications = [
+          ...state._notificationQueue.map((notif) => ({
+            id: notif.id || Date.now(),
+            timestamp: notif.timestamp || new Date(),
+            read: false,
+            ...notif,
+          })),
+          ...state.notifications,
+        ].slice(0, 20);
+        return {
+          isInitialized: val,
+          notifications: newNotifications,
+          _notificationQueue: [],
+        };
+      }
+      return { isInitialized: val };
+    }),
   setTyping: (val) => set({ isTyping: val }),
   setSelectedUser: (user) => {
     set({
@@ -59,13 +65,13 @@ export const useUIStore = create((set) => ({
         activePanel: "chat",
         activeChatTab: "nearby",
         selectedUser: null,
-        isTyping: false
+        isTyping: false,
       });
     } else {
-      set({ 
-        nearbyUser: null, 
-        activePanel: null, 
-        isTyping: false 
+      set({
+        nearbyUser: null,
+        activePanel: null,
+        isTyping: false,
       });
     }
   },
@@ -109,38 +115,38 @@ export const useUIStore = create((set) => ({
       // Remove duplicate protection for multiplayer notifications
       // Allow same message from different users/times
       const newNotifications = [
-          {
-            id: notification.id || Date.now(),
-            timestamp: notification.timestamp || new Date(),
-            read: false,
-            ...notification,
-          },
-          ...state.notifications,
-        ].slice(0, 20);
+        {
+          id: notification.id || Date.now(),
+          timestamp: notification.timestamp || new Date(),
+          read: false,
+          ...notification,
+        },
+        ...state.notifications,
+      ].slice(0, 20);
 
       // Phase 4: Persist to backend (fire and forget)
       // Skip persistence if notification came from server (has _skipPersist flag)
       if (!notification._skipPersist) {
         const persistNotification = async () => {
           try {
-            const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const token = localStorage.getItem("token");
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-            await fetch('http://localhost:5001/api/notifications', {
-              method: 'POST',
+            await fetch(`${API_URL}/api/notifications`, {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
-                type: notification.type || 'system',
+                type: notification.type || "system",
                 title: notification.title,
                 message: notification.message,
                 data: notification.data,
               }),
             });
           } catch (error) {
-            console.error('Failed to persist notification to backend:', error);
+            console.error("Failed to persist notification to backend:", error);
             // Continue - notification still shows in UI
           }
         };
@@ -168,15 +174,15 @@ export const useUIStore = create((set) => ({
     }));
     // Phase 4: Persist to backend
     try {
-      const token = localStorage.getItem('token');
-      await fetch('http://localhost:5001/api/notifications/read-all', {
-        method: 'PUT',
+      const token = localStorage.getItem("token");
+      await fetch(`${API_URL}/api/notifications/read-all`, {
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
     } catch (error) {
-      console.error('Failed to mark all as read on server:', error);
+      console.error("Failed to mark all as read on server:", error);
     }
   },
   clearNotifications: async () => {
@@ -184,15 +190,15 @@ export const useUIStore = create((set) => ({
     set({ notifications: [] });
     // Phase 4: Persist to backend
     try {
-      const token = localStorage.getItem('token');
-      await fetch('http://localhost:5001/api/notifications', {
-        method: 'DELETE',
+      const token = localStorage.getItem("token");
+      await fetch(`${API_URL}/api/notifications`, {
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
     } catch (error) {
-      console.error('Failed to clear notifications on server:', error);
+      console.error("Failed to clear notifications on server:", error);
     }
   },
 
@@ -209,7 +215,7 @@ export const useUIStore = create((set) => ({
           toasts: state.toasts.filter((t) => t.id !== id),
         }));
       }, duration);
-      
+
       // Store timeout ID for potential cleanup
       // Note: In a full implementation, this would use a ref in a component
       // For now, we accept the limitation as system is functional

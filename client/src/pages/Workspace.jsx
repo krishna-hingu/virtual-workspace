@@ -20,6 +20,8 @@ import socket from '../socket/socket';
 import { Z_INDEX } from '../constants/zIndex';
 import { CINEMATIC } from '../constants/cinematicAtmosphere';
 
+import { API_URL } from '../services/api';
+
 // Module-level guard to prevent duplicate notification fetches
 let _isFetchingNotifications = false;
 let _lastNotificationFetchTime = 0;
@@ -84,7 +86,7 @@ export function Workspace() {
         _lastNotificationFetchTime = now;
         Workspace._notificationsLoaded = true;
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5001/api/notifications', {
+        const response = await fetch(`${API_URL}/api/notifications`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
